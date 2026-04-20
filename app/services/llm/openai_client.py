@@ -56,19 +56,19 @@ class OpenAIClient(LLMService):
     def _build_user_prompt(self, leads: list[dict], idioma: str) -> str:
         total = len(leads)
         fuentes = {}
-        presupuestos = [l["presupuesto"] for l in leads if l.get("presupuesto")]
+        presupuestos = [l["budget"] for l in leads if l.get("budget")]
         promedio_presupuesto = round(sum(presupuestos) / len(presupuestos), 2) if presupuestos else "N/A"
 
         for lead in leads:
-            fuente = lead.get("fuente", "desconocida")
+            fuente = lead.get("source", "desconocida")
             fuentes[fuente] = fuentes.get(fuente, 0) + 1
 
         fuentes_str = "\n".join(f"  - {k}: {v} leads" for k, v in sorted(fuentes.items(), key=lambda x: -x[1]))
 
         leads_detalle = "\n".join(
-            f"  [{i+1}] {l.get('nombre')} | fuente: {l.get('fuente')} | "
-            f"presupuesto: ${l.get('presupuesto', 'N/A')} | "
-            f"producto: {l.get('producto_interes', 'N/A')} | "
+            f"  [{i+1}] {l.get('name')} | fuente: {l.get('source')} | "
+            f"presupuesto: ${l.get('budget', 'N/A')} | "
+            f"producto: {l.get('product_interest', 'N/A')} | "
             f"registrado: {l.get('created_at', 'N/A')}"
             for i, l in enumerate(leads[:50])  # cap para no exceder tokens
         )
