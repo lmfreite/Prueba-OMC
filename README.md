@@ -119,9 +119,16 @@ Si ya existen datos en la tabla, el seed no modifica ni duplica nada — es comp
 
 Base URL: `http://localhost:8007/api/v1`
 
-### Autenticación (`/auth`)
+### 🔓 Autenticación
 
-El JWT se maneja mediante **cookie HttpOnly** — no es necesario enviar el token en headers manualmente.
+Los endpoints de **leads son privados** y requieren estar autenticado. El sistema de autenticación funciona mediante **cookie HttpOnly**: al hacer login, el servidor establece automáticamente la cookie con el JWT. Todas las peticiones posteriores a endpoints protegidos deben enviar esa cookie.
+
+En `curl` se maneja con los flags `-c` (guardar cookie) y `-b` (enviar cookie):
+
+```
+-c cookies.txt   ← guarda la cookie al hacer login
+-b cookies.txt   ← envía la cookie en peticiones autenticadas
+```
 
 #### Login
 
@@ -130,6 +137,8 @@ curl -c cookies.txt -X POST http://localhost:8007/api/v1/auth/login \
   -H "Content-Type: application/json" \
   -d '{"username": "admin", "password": "admin123"}'
 ```
+
+> ✅ Tras este paso, `cookies.txt` contiene el JWT. Úsalo en todas las llamadas a `/leads`.
 
 #### Registro de usuario
 
@@ -147,12 +156,14 @@ curl -b cookies.txt -X POST http://localhost:8007/api/v1/auth/logout
 
 ---
 
-### Leads (`/leads`)
+### 🔒 Leads (requieren autenticación)
+
+> Todos los endpoints de leads requieren haber hecho login previamente. Incluye `-b cookies.txt` en cada petición.
 
 #### Crear un lead
 
 ```bash
-curl -X POST http://localhost:8007/api/v1/leads \
+curl -b cookies.txt -X POST http://localhost:8007/api/v1/leads \
   -H "Content-Type: application/json" \
   -d '{
     "name": "Pedro Suárez",
@@ -168,28 +179,28 @@ curl -X POST http://localhost:8007/api/v1/leads \
 
 ```bash
 # Página 1, 10 por página
-curl "http://localhost:8007/api/v1/leads?Page=1&Page_size=10"
+curl -b cookies.txt "http://localhost:8007/api/v1/leads?Page=1&Page_size=10"
 
 # Filtrar por fuente
-curl "http://localhost:8007/api/v1/leads?source=instagram"
+curl -b cookies.txt "http://localhost:8007/api/v1/leads?source=instagram"
 
 # Filtrar por nombre
-curl "http://localhost:8007/api/v1/leads?name=Carlos"
+curl -b cookies.txt "http://localhost:8007/api/v1/leads?name=Carlos"
 
 # Filtrar por email
-curl "http://localhost:8007/api/v1/leads?email=carlos.ramirez@example.com"
+curl -b cookies.txt "http://localhost:8007/api/v1/leads?email=carlos.ramirez@example.com"
 ```
 
 #### Obtener un lead por ID
 
 ```bash
-curl http://localhost:8007/api/v1/leads/1
+curl -b cookies.txt http://localhost:8007/api/v1/leads/1
 ```
 
 #### Actualizar un lead
 
 ```bash
-curl -X PATCH http://localhost:8007/api/v1/leads/1 \
+curl -b cookies.txt -X PATCH http://localhost:8007/api/v1/leads/1 \
   -H "Content-Type: application/json" \
   -d '{"budget": 250000, "product_interest": "Gorras bordadas"}'
 ```
@@ -197,19 +208,19 @@ curl -X PATCH http://localhost:8007/api/v1/leads/1 \
 #### Eliminar un lead
 
 ```bash
-curl -X DELETE http://localhost:8007/api/v1/leads/1
+curl -b cookies.txt -X DELETE http://localhost:8007/api/v1/leads/1
 ```
 
 #### Estadísticas de leads
 
 ```bash
-curl http://localhost:8007/api/v1/leads/stats
+curl -b cookies.txt http://localhost:8007/api/v1/leads/stats
 ```
 
 #### Resumen IA (requiere `AI_API_KEY` válida)
 
 ```bash
-curl -X POST http://localhost:8007/api/v1/ai/summary \
+curl -b cookies.txt -X POST http://localhost:8007/api/v1/ai/summary \
   -H "Content-Type: application/json" \
   -d '{"source": "instagram"}'
 ```
@@ -244,3 +255,4 @@ Prueba-OMC/
 - La documentación interactiva completa está disponible en **`/scalar`** una vez levantado el proyecto.
 - El puerto expuesto por Docker es **8007** (mapeado al 8000 interno del contenedor).
 - PostgreSQL queda expuesto en el puerto **5437** para conexiones locales desde un cliente como DBeaver o TablePlus.
+- Si una petición a `/leads` devuelve `401 Unauthorized`, asegúrate de haber hecho login primero y de estar enviando la cookie con `-b cookies.txt`.
