@@ -1,6 +1,6 @@
 import asyncpg
 
-from app.db.seed import seed_database
+from app.db.seed import seed_database, seed_leads
 from app.db.session import AsyncSessionLocal, engine
 from app.services import AlembicService
 from app.core.settings import settings
@@ -41,6 +41,7 @@ async def init_db():
         AlembicService.check_and_apply_migrations()
         async with AsyncSessionLocal() as session:
             await seed_database(session)
+            await seed_leads(session)
     except Exception as e:
         print(f"❌ Error inicializando la base de datos: {e}")
 
