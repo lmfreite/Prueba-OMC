@@ -1,10 +1,10 @@
 from typing import List, Optional
 
-from fastapi import APIRouter, Body, Depends, Path, Query, Request, status
+from fastapi import APIRouter, Body, Depends, Path, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.session import get_db
-from app.dependencies import get_current_active_user
+from app.dependencies import get_current_active_user, get_llm_service
 from app.models.user import User
 from app.schemas.leads import (LeadAISummaryRequest, LeadCreate, LeadOut,
                                LeadStats, LeadUpdate)
@@ -110,7 +110,7 @@ async def delete_lead(
 async def ai_summary(
     filtro: LeadAISummaryRequest = Body(...),
     db: AsyncSession = Depends(get_db),
-    llm: LLMService = Depends(),
+    llm: LLMService = Depends(get_llm_service),
     _current_user: User = Depends(get_current_active_user),
 ):
     result = await LeadService.ai_summary(db, filtro, llm)
