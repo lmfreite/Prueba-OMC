@@ -41,7 +41,9 @@ class Settings(BaseSettings):
     
     DEFAULT_USERNAME:str
     DEFAULT_PASSWORD:str
-
+    
+    AI_API_KEY:str
+    AI_MODEL:str
     
 
     @staticmethod

@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Optional
 from pydantic import BaseModel, Field, EmailStr
 from app.models.enums import SourceType
@@ -31,3 +32,8 @@ class LeadStats(BaseModel):
     source_count: dict
     budget_avg: Optional[float]
     created_last_7_days: int
+
+class LeadAISummaryRequest(BaseModel):
+    source: Optional[str] = None
+    date_from: Optional[datetime] = None
+    date_to: Optional[datetime] = None

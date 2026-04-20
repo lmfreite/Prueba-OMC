@@ -1,10 +1,15 @@
+
 from typing import List, Optional
-from fastapi import APIRouter, Depends, Path, Query, status
+
+from fastapi import APIRouter, Body, Depends, Path, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.db.session import get_db
-from app.schemas.leads import LeadCreate, LeadOut, LeadStats, LeadUpdate
+from app.schemas.leads import (LeadAISummaryRequest, LeadCreate, LeadOut,
+                               LeadStats, LeadUpdate)
 from app.schemas.response import PaginationMetadata, StandardResponse
-from app.service.leads import LeadService
+from app.services.leads import LeadService
+from app.services.llm.base import LLMService
 
 router = APIRouter()
 
@@ -92,3 +97,19 @@ async def delete_lead(
 ):
     await LeadService.delete(db, lead_id)
     return
+
+@router.post("/ai/summary", response_model=StandardResponse[dict, None])
+async def ai_summary(
+    filtro: LeadAISummaryRequest = Body(...),
+    db: AsyncSession = Depends(get_db),
+    llm: LLMService = Depends(),
+):
+    result = await LeadService.ai_summary(db, filtro, llm)
+    return StandardResponse[
+        dict, None
+    ](
+        Success=True,
+        Message="Resumen generado por IA",
+        Data=result,
+        Metadata=None
+    )
